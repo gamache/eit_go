@@ -6,11 +6,19 @@ import (
   "encoding/json"
   "reflect"
   "fmt"
+  "strings"
 )
 
+
 func main() {
+  // gotta register the marshaller before registering the service
+  marshaller := ourMarshaller()
+  gorest.RegisterMarshaller("application/json", marshaller)
+  if gorest.GetMarshallerByMime("application/json") != marshaller {
+    fmt.Printf("OH DIP, RegisterMarshaller() didn't work\n")
+  }
+
   gorest.RegisterService(new(EitService))
-  gorest.RegisterMarshaller("application/json", ourMarshaller())
   http.Handle("/", gorest.Handle())
   http.ListenAndServe(":8099", nil)
 }
@@ -18,17 +26,19 @@ func main() {
 
 func ourMarshal(v interface{}) ([]byte, error) {
   fmt.Printf("entered ourMarshal\n")
+
   // if v is a struct, we want the output's keys to be non-capitalized.
-  // make that happen by way of converting to a map[string]
+  // make that happen, by way of converting to a map[string]
   typ := reflect.TypeOf(v)
   val := reflect.ValueOf(v)
   if typ.Kind() == reflect.Struct {
     m := make(map[string]interface{})
     for i := 0; i < typ.NumField(); i++ {
       fieldname := typ.Field(i).Name
-      m[fieldname] = reflect.ValueOf(val.FieldByName(fieldname))
+      lowercase_fieldname := strings.Join([]string{strings.ToLower(string(fieldname[0])),
+        fieldname[1:]}, "")
+      m[lowercase_fieldname] = reflect.ValueOf(val.FieldByName(fieldname))
     }
-    m["ballz"] = 33
     return json.Marshal(m)
   }
 
@@ -49,12 +59,12 @@ type EitService struct {
   gamesCreate gorest.EndPoint `method:"POST" path:"/games" postdata:"Game"`
 }
 
+
 type Game struct {
   TourneyId string "tourney_id"
   UserId string "user_id"
   GameId string "game_id"
-}
-/*
+
   version string
   points int
   deathdnum int
@@ -81,16 +91,13 @@ type Game struct {
   gender0 string
   align0 string
 }
-*/
+
 
 
 func(serv EitService) GamesShow(gameId string) (game Game) {
   game = Game{
-    GameId: gameId}
-//  game.UserId = json.Marshal(map[string]interface{}(game))
-    //, name: "test", turns: 1, points: 22,
-    //deaths: 1, maxlvl: 1, death: "choked on dicks"}
-  //fmt.Printf(game)
+    GameId: gameId, name: "test", turns: 1, points: 22,
+    deaths: 1, maxlvl: 1, death: "choked on dicks"}
   return
 }
 
