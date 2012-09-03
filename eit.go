@@ -1,7 +1,7 @@
 package main
 
 import (
-  "code.google.com/p/gorest"
+  "./gorest"
   "net/http"
   "encoding/json"
   "reflect"
