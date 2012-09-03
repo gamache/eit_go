@@ -40,9 +40,7 @@ func RegisterMarshaller(mime string, m *Marshaller) {
 	if marshallers == nil {
 		marshallers = make(map[string]*Marshaller, 0)
 	}
-	if _, found := marshallers[mime]; !found {
-		marshallers[mime] = m
-	}
+	marshallers[mime] = m
 }
 
 //Get an already registered Marshaller
