@@ -10,12 +10,19 @@ import (
 )
 
 
+var games map[string]Game
+
+
 func main() {
+  games = make(map[string]Game)
+
   // gotta register the marshaller before registering the service
   marshaller := ourMarshaller()
   gorest.RegisterMarshaller("application/json", marshaller)
   if gorest.GetMarshallerByMime("application/json") != marshaller {
-    fmt.Printf("OH DIP, RegisterMarshaller() didn't work\n")
+    fmt.Printf("OH DIP, RegisterMarshaller() didn't work. We aren't using a patched\n")
+    fmt.Printf("version of gorest, are we?\n")
+    return
   }
 
   gorest.RegisterService(new(EitService))
@@ -25,8 +32,6 @@ func main() {
 
 
 func ourMarshal(v interface{}) ([]byte, error) {
-  fmt.Printf("entered ourMarshal\n")
-
   // if v is a struct, we want the output's keys to be non-capitalized.
   // make that happen, by way of converting to a map[string]
   typ := reflect.TypeOf(v)
@@ -35,9 +40,13 @@ func ourMarshal(v interface{}) ([]byte, error) {
     m := make(map[string]interface{})
     for i := 0; i < typ.NumField(); i++ {
       fieldname := typ.Field(i).Name
-      lowercase_fieldname := strings.Join([]string{strings.ToLower(string(fieldname[0])),
-        fieldname[1:]}, "")
-      m[lowercase_fieldname] = reflect.ValueOf(val.FieldByName(fieldname))
+      lowercase_fieldname := strings.Join(
+        []string{strings.ToLower(string(fieldname[0])), fieldname[1:]},
+        "")
+      if fieldname != lowercase_fieldname {
+        fieldval := val.Field(i).Interface()
+        m[lowercase_fieldname] = fieldval
+      }
     }
     return json.Marshal(m)
   }
@@ -61,47 +70,57 @@ type EitService struct {
 
 
 type Game struct {
-  TourneyId string "tourney_id"
-  UserId string "user_id"
-  GameId string "game_id"
+  TourneyId string
+  UserId string
+  GameId string
 
-  version string
-  points int
-  deathdnum int
-  deathlev int
-  maxlvl int
-  hp int
-  maxhp int
-  deaths int
-  deathdate int // yyyymmdd
-  birthdate int // yyyymmdd
-  uid int
-  role string
-  race string
-  gender string
-  align string
-  name string
-  death string
-  conduct int // bitfield
-  turns int
-  achieve int // bitfield
-  realtime int // seconds
-  starttime int // seconds since epoch
-  endtime int // seconds since epoch
-  gender0 string
-  align0 string
+  /// xlogfile fields follow
+  Version string
+  Points int
+  Deathdnum int
+  Deathlev int
+  Maxlvl int
+  Hp int
+  Maxhp int
+  Deaths int
+  Deathdate int // yyyymmdd
+  Birthdate int // yyyymmdd
+  Uid int
+  Role string
+  Race string
+  Gender string
+  Align string
+  Name string
+  Death string
+  Conduct int // bitfield
+  Turns int
+  Achieve int // bitfield
+  Realtime int // seconds
+  Starttime int // seconds since epoch
+  Endtime int // seconds since epoch
+  Gender0 string
+  Align0 string
 }
 
 
 
 func(serv EitService) GamesShow(gameId string) (game Game) {
-  game = Game{
-    GameId: gameId, name: "test", turns: 1, points: 22,
-    deaths: 1, maxlvl: 1, death: "choked on dicks"}
+  game, found := games[gameId]
+  if !found {
+    game = Game{
+      GameId: gameId, UserId: "eit_krog", Name: "test", Turns: 1, Points: 22,
+      Deaths: 1, Maxlvl: 1, Death: "choked on dicks"}
+  }
   return
 }
 
 func(serv EitService) GamesCreate(game Game) {
+  ingest_game(game)
   serv.ResponseBuilder().SetResponseCode(201)
+  return
+}
+
+func ingest_game(game Game) {
+  games[game.GameId] = game
   return
 }
