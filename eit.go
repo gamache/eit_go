@@ -1,17 +1,17 @@
 package main
 
 import (
-  "./gorest"
+  "./gorest" // must be patched to support repeated RegisterMarshaller() calls
   "net/http"
   "encoding/json"
   "reflect"
   "fmt"
+  "io/ioutil"
   "strings"
 )
 
 
 var games map[string]Game
-
 
 func main() {
   games = make(map[string]Game)
@@ -25,9 +25,51 @@ func main() {
     return
   }
 
+  importXlog("./scores.xlogfile.2010");
+
   gorest.RegisterService(new(EitService))
   http.Handle("/", gorest.Handle())
   http.ListenAndServe(":8099", nil)
+}
+
+
+func importXlog(xlogfile string) {
+  bytes, _ := ioutil.ReadFile(xlogfile)
+  lines := strings.Split(string(bytes), "\n")
+  for _, line := range lines {
+    importXlogLine(line)
+  }
+}
+
+func importXlogLine(line string) {
+  gameId_fields := strings.SplitN(line, " ", 2)
+  if len(gameId_fields) < 2 {
+    return
+  }
+  gameId := gameId_fields[0]
+  fields := gameId_fields[1]
+
+  // build up map of game attributes
+  fields_map := make(map[string]string)
+  fields_map["GameId"] = gameId
+  kvpairs := strings.Split(fields, ":")
+  for _, kvpair := range kvpairs {
+    key_value := strings.SplitN(kvpair, "=", 2)
+    if len(key_value) < 2 {
+      break
+    }
+    key := key_value[0]
+    value := key_value[1]
+
+    fields_map[key] = value
+  }
+
+  importGameFromMap(fields_map)
+}
+
+func importGameFromMap(fields_map map[string]string) (game Game) {
+  // todo!
+  return
 }
 
 
@@ -44,8 +86,7 @@ func ourMarshal(v interface{}) ([]byte, error) {
         []string{strings.ToLower(string(fieldname[0])), fieldname[1:]},
         "")
       if fieldname != lowercase_fieldname {
-        fieldval := val.Field(i).Interface()
-        m[lowercase_fieldname] = fieldval
+        m[lowercase_fieldname] = val.Field(i).Interface()
       }
     }
     return json.Marshal(m)
