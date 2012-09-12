@@ -2,6 +2,13 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
+
+
+GET     /games/{id}     Games.Show
+POST    /games          Games.Create
+PUT     /games/{id}     Games.Update
+
+
 GET     /                                       Application.Index
 
 # Ignore favicon requests
@@ -11,4 +18,4 @@ GET     /favicon.ico                            404
 GET     /public/                                staticDir:public
 
 # Catch all
-*       /{controller}/{action}                  {controller}.{action}
+#*       /{controller}/{action}                  {controller}.{action}

@@ -1,4 +1,4 @@
-package "models"
+package models
 
 type Game struct {
   TourneyId string `json:"tourney_id"`
@@ -32,5 +32,4 @@ type Game struct {
   Gender0 string
   Align0 string
 }
-
 
