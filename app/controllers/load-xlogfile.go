@@ -26,7 +26,9 @@ func importXlog(xlogfile string) {
 	bytes, _ := ioutil.ReadFile(xlogfile)
 	lines := strings.Split(string(bytes), "\n")
 	for _, line := range lines {
-		importXlogLine(line)
+		g := models.NewGameFromXlogLine(line)
+		//g.Save()
+		models.GamesMap[g.GameId] = g
 	}
 	fmt.Printf("imported %d lines. ", len(models.GamesMap))
 }
@@ -94,5 +96,6 @@ func importGame(game models.Game) {
 }
 
 func init() {
+	models.GamesMap = make(map[string]models.Game)
 	rev.RegisterPlugin(XlogPlugin{})
 }
