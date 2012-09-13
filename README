@@ -1,3 +1,11 @@
 Eit_go is a Nethack statistics web service written in Go.
+It's going to become the new backend service for http://gunyoki.net/.
 
-Not much here yet.
+app/controllers/load_xlogfile.go is a plugin which reads and imports
+  'scores.xlogfile.2010'.
+
+More news as it develops.
+
+-pete gamache
+ pete !@#$!@#$ gamache.org
+
