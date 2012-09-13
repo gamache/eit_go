@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-var GamesMap map[string]Game
+var GamesMap = make(map[string]Game)
 
 type Game struct {
 	TourneyId string `json:"tourney_id"`
