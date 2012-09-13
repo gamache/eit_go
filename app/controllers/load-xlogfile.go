@@ -9,7 +9,7 @@ import (
   "reflect"
 )
 
-var games map[string]models.Game
+//var GamesMap = make(map[string]models.Game)
 
 type XlogPlugin struct {
   rev.EmptyPlugin
@@ -28,7 +28,7 @@ func importXlog(xlogfile string) {
   for _, line := range lines {
     importXlogLine(line)
   }
-  fmt.Printf(" imported %d lines. ", len(games))
+  fmt.Printf("imported %d lines. ", len(models.GamesMap))
 }
 
 func importXlogLine(line string) {
@@ -50,6 +50,7 @@ func importXlogLine(line string) {
     }
     key := key_value[0]
     value := key_value[1]
+//fmt.Printf("setting %s to %s\n", key, value)
 
     fields_map[key] = value
   }
@@ -88,7 +89,7 @@ func mapToStruct(m map[string]interface{}, s interface{}) {
 */
 
 func importGame(game models.Game) {
-  games[game.GameId] = game
+  models.GamesMap[game.GameId] = game
   return
 }
 

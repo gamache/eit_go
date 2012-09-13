@@ -10,7 +10,7 @@ type Games struct {
 }
 
 func (c Games) Show(id string) rev.Result {
-  return c.RenderJson(models.Game{})
+  return c.RenderJson(models.GameById(id))
 }
 
 func (c Games) Create(game models.Game) rev.Result {
